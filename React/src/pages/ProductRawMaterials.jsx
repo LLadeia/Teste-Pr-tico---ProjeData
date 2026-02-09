@@ -8,14 +8,23 @@ export default function ProductRawMaterials() {
   const [product, setProduct] = useState("");
   const [material, setMaterial] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [associacoes, setAssociacoes] = useState([]);
 
   useEffect(() => {
     api.get("products/").then(res => setProducts(res.data));
     api.get("raw-materials/").then(res => setMaterials(res.data));
   }, []);
 
+
+  useEffect(() => {
+  fetch("http://localhost:8000/product-raw-material/")
+    .then(res => res.json())
+    .then(data => setAssociacoes(data));
+}, []);
+
+
   const associate = async () => {
-    await api.post("product-raw-materials/", {
+    await api.post("/api/product-raw-materials/", {
       product,
       raw_material: material,
       quantity
@@ -44,6 +53,17 @@ export default function ProductRawMaterials() {
       />
 
       <button onClick={associate}>Associar</button>
+
+      <ul>
+    {associacoes.map(item => (
+    <li key={item.id}>
+      Produto: {item.product_name} |
+      Matéria-prima: {item.raw_material_name} |
+      Quantidade: {item.quantity}
+    </li>
+  ))}
+</ul>
+
     </>
   );
 }

@@ -6,14 +6,15 @@ class RawMaterialSerializer(serializers.ModelSerializer):
         model = RawMaterial
         fields = '__all__'
 
-
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = '__all__'
-
+        fields = ['id', 'name']
 
 class ProductRawMaterialSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    raw_material_name = serializers.CharField(source='raw_material.name', read_only=True)
+
     class Meta:
         model = ProductRawMaterial
-        fields = '__all__'
+        fields = ['id', 'product', 'product_name', 'raw_material', 'raw_material_name', 'quantity']

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Product, RawMaterial, ProductRawMaterial
+
 from .serializers import (
     ProductSerializer,
     RawMaterialSerializer,
@@ -50,11 +51,7 @@ class ProductRawMaterialViewSet(ModelViewSet):
                     status=status.HTTP_200_OK
                 )
 
-        return Response(
-            {"can_produce": True},
-            status=status.HTTP_200_OK
-        )
-
+        return Response({"can_produce": True})
 
 
     @action(detail=True, methods=['post'])
@@ -64,7 +61,6 @@ class ProductRawMaterialViewSet(ModelViewSet):
 
         relations = ProductRawMaterial.objects.filter(product=product)
 
-        # 1️⃣ Verificação (NÃO altera nada)
         for relation in relations:
             raw_material = relation.raw_material
             required = relation.quantity * quantity
@@ -73,28 +69,16 @@ class ProductRawMaterialViewSet(ModelViewSet):
                 return Response(
                     {
                         "success": False,
-                        "message": "Insufficient stock",
-                        "raw_material": raw_material.name,
-                        "required": required,
-                        "available": raw_material.stock
+                        "raw_material": raw_material.name
                     },
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        # 2️⃣ Produção (transação)
         with transaction.atomic():
             for relation in relations:
                 raw_material = relation.raw_material
-                required = relation.quantity * quantity
-
-                raw_material.stock -= required
+                raw_material.stock -= relation.quantity * quantity
                 raw_material.save()
 
-        return Response(
-            {
-                "success": True,
-                "product": product.name,
-                "quantity_produced": quantity
-            },
-            status=status.HTTP_200_OK
-        )
+        return Response({"success": True})
+
