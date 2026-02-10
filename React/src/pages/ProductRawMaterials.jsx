@@ -156,23 +156,28 @@ export default function ProductRawMaterials() {
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", padding: 8 }}>Produto</th>
+                  <th style={{ textAlign: "right", padding: 8 }}>Preço</th>
                   <th style={{ textAlign: "left", padding: 8 }}>Matéria-prima</th>
                   <th style={{ width: 120 }}>Qtd</th>
                   <th style={{ width: 140 }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredAssocs.map(a => (
-                  <tr key={a.id} style={{ borderTop: "1px solid #eee" }}>
-                    <td style={{ padding: 8 }}>{a.product_name || a.product}</td>
-                    <td style={{ padding: 8 }}>{a.raw_material_name || a.raw_material}</td>
-                    <td style={{ padding: 8 }}>{a.quantity}</td>
-                    <td style={{ padding: 8 }}>
-                      <button onClick={() => openEdit(a)} style={{ marginRight: 8 }}>Editar</button>
-                      <button onClick={() => removeAssociation(a.id)} style={{ color: "#a00" }}>Deletar</button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredAssocs.map(a => {
+                  const product = products.find(p => p.id === a.product);
+                  return (
+                    <tr key={a.id} style={{ borderTop: "1px solid #eee" }}>
+                      <td style={{ padding: 8 }}>{a.product_name || a.product}</td>
+                      <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(product?.price || 0).toFixed(2)}</td>
+                      <td style={{ padding: 8 }}>{a.raw_material_name || a.raw_material}</td>
+                      <td style={{ padding: 8 }}>{a.quantity}</td>
+                      <td style={{ padding: 8 }}>
+                        <button onClick={() => openEdit(a)} style={{ marginRight: 8 }}>Editar</button>
+                        <button onClick={() => removeAssociation(a.id)} style={{ color: "#a00" }}>Deletar</button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

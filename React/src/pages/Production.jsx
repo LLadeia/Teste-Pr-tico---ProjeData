@@ -10,6 +10,7 @@ export default function Production() {
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [productions, setProductions] = useState([]);
+  const [associations, setAssociations] = useState([]);
 
   useEffect(() => {
     loadInitial();
@@ -18,12 +19,14 @@ export default function Production() {
   const loadInitial = async () => {
     setLoading(true);
     try {
-      const [pRes, prodRes] = await Promise.all([
+      const [pRes, prodRes, assocRes] = await Promise.all([
         api.get("products/"),
-        api.get("production-logs/")
+        api.get("production-logs/"),
+        api.get("product-raw-materials/")
       ]);
       setProducts(pRes.data);
       setProductions(prodRes.data);
+      setAssociations(assocRes.data);
     } catch (err) {
       pushToast("error", "Erro ao carregar dados");
       console.error(err);
@@ -101,18 +104,23 @@ export default function Production() {
                   <thead>
                     <tr>
                       <th style={{ textAlign: "left", padding: 8 }}>Produto</th>
+                      <th style={{ textAlign: "right", padding: 8 }}>Preço Unit.</th>
                       <th style={{ textAlign: "center", padding: 8 }}>Quantidade</th>
                       <th style={{ textAlign: "left", padding: 8 }}>Data/Hora</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {productions.map(p => (
-                      <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                        <td style={{ padding: 8 }}>{p.product_name}</td>
-                        <td style={{ textAlign: "center", padding: 8 }}>x{p.quantity}</td>
-                        <td style={{ padding: 8, fontSize: 12, color: "#666" }}>{formatDate(p.created_at)}</td>
-                      </tr>
-                    ))}
+                    {productions.map(p => {
+                      const product = products.find(pr => pr.id === p.product);
+                      return (
+                        <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                          <td style={{ padding: 8 }}>{p.product_name}</td>
+                          <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(product?.price || 0).toFixed(2)}</td>
+                          <td style={{ textAlign: "center", padding: 8 }}>x{p.quantity}</td>
+                          <td style={{ padding: 8, fontSize: 12, color: "#666" }}>{formatDate(p.created_at)}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -135,10 +143,29 @@ export default function Production() {
               >
                 <option value="">Selecione um produto</option>
                 {products.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+                  <option key={p.id} value={p.id}>{p.name} - R$ {parseFloat(p.price || 0).toFixed(2)}</option>
                 ))}
               </select>
             </div>
+
+            {selectedProduct && products.find(p => p.id == selectedProduct) && (
+              <div style={{ padding: 12, background: "#e3f2fd", borderRadius: 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <small style={{ color: "#666" }}>Preço Unitário</small>
+                    <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#007bff" }}>
+                      R$ {parseFloat(products.find(p => p.id == selectedProduct)?.price || 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <div>
+                    <small style={{ color: "#666" }}>Preço Total ({quantity}x)</small>
+                    <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#28a745" }}>
+                      R$ {(parseFloat(products.find(p => p.id == selectedProduct)?.price || 0) * (quantity || 1)).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {loading && (
               <div style={{ color: "#007bff", display: "flex", alignItems: "center", gap: 8 }}>

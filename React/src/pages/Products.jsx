@@ -5,7 +5,7 @@ import ModalForm from '/src/components/ModalForm.jsx';
 
 export default function Products() {
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({ name: "" });
+  const [form, setForm] = useState({ name: "", price: "" });
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [editing, setEditing] = useState(null);
@@ -32,11 +32,12 @@ export default function Products() {
 
   const create = async () => {
     if (!form.name.trim()) return pushToast("error", "Preencha o nome");
+    if (!form.price || form.price <= 0) return pushToast("error", "Preencha o preço");
     setLoading(true);
     try {
-      await api.post("products/", { name: form.name });
+      await api.post("products/", { name: form.name, price: Number(form.price) });
       pushToast("success", "Produto criado");
-      setForm({ name: "" });
+      setForm({ name: "", price: "" });
       await load();
     } catch (err) {
       pushToast("error", "Erro ao criar");
@@ -62,11 +63,12 @@ export default function Products() {
     setModalVisible(true);
   };
 
-  const saveEdit = async (name) => {
+  const saveEdit = async (name, price) => {
     if (!name.trim()) return pushToast("error", "Preencha o nome");
+    if (!price || price <= 0) return pushToast("error", "Preencha o preço");
     setLoading(true);
     try {
-      await api.patch(`products/${editing.id}/`, { name });
+      await api.patch(`products/${editing.id}/`, { name, price: Number(price) });
       pushToast("success", "Produto atualizado");
       setModalVisible(false);
       setEditing(null);
@@ -97,6 +99,7 @@ export default function Products() {
               <thead>
                 <tr>
                   <th style={{ textAlign: "left", padding: 8 }}>Nome</th>
+                  <th style={{ textAlign: "right", padding: 8 }}>Preço</th>
                   <th style={{ width: 140 }}>Ações</th>
                 </tr>
               </thead>
@@ -104,6 +107,7 @@ export default function Products() {
                 {products.map(p => (
                   <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
                     <td style={{ padding: 8 }}>{p.name}</td>
+                    <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
                     <td style={{ padding: 8 }}>
                       <button onClick={() => openEdit(p)} style={{ marginRight: 8 }}>Editar</button>
                       <button onClick={() => remove(p.id)} style={{ color: "#a00" }}>Deletar</button>
@@ -118,7 +122,8 @@ export default function Products() {
         <aside style={{ width: 300 }}>
           <h3>Novo Produto</h3>
           <div style={{ display: "grid", gap: 8 }}>
-            <input type="text" placeholder="Nome" value={form.name} onChange={e => setForm({ name: e.target.value })} />
+            <input type="text" placeholder="Nome" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
             <button onClick={create} disabled={loading}>
               {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
             </button>
@@ -135,12 +140,14 @@ export default function Products() {
 
 function EditModal({ product, onSave, onCancel }) {
   const [name, setName] = useState(product.name);
+  const [price, setPrice] = useState(product.price || "");
   return (
     <div style={{ display: "grid", gap: 8 }}>
-      <input type="text" value={name} onChange={e => setName(e.target.value)} />
+      <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome" />
+      <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço" step="0.01" min="0" />
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
         <button onClick={onCancel}>Cancelar</button>
-        <button onClick={() => onSave(name)}>Salvar</button>
+        <button onClick={() => onSave(name, price)}>Salvar</button>
       </div>
     </div>
   );
