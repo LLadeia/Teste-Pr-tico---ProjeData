@@ -21,4 +21,14 @@ class ProductRawMaterial(models.Model):
     raw_material = models.ForeignKey(RawMaterial, on_delete=models.CASCADE)
     quantity = models.FloatField()
 
-# Create your models here.
+class ProductionLog(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity} - {self.created_at}"
+

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, RawMaterial, ProductRawMaterial
+from .models import Product, RawMaterial, ProductRawMaterial, ProductionLog
 
 class RawMaterialSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,3 +18,10 @@ class ProductRawMaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductRawMaterial
         fields = ['id', 'product', 'product_name', 'raw_material', 'raw_material_name', 'quantity']
+
+class ProductionLogSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+
+    class Meta:
+        model = ProductionLog
+        fields = ['id', 'product', 'product_name', 'quantity', 'created_at']
