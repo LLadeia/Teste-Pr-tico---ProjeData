@@ -6,7 +6,7 @@ import RawMaterials from "./pages/RawMaterials";
 import ProductRawMaterials from "./pages/ProductRawMaterials";
 import Production from "./pages/Production";
 import Login from "./pages/Login";
-import Auditory from "./pages/Auditory";
+
 
 function App() {
   return (
@@ -14,7 +14,6 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/auditory" element={<Auditory />} />
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/" element={<Login />} />
           <Route path="/products" element={<Products />} />

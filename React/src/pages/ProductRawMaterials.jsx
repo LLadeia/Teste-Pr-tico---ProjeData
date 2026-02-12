@@ -197,7 +197,7 @@ export default function ProductRawMaterials() {
         </section>
 
         <aside style={{ width: 340 }}>
-          <h3>Adicionar Material</h3>
+          <h3>Adicionar Associação</h3>
           <div style={{ display: "grid", gap: 8 }}>
               <div>
               <label style={{ display: "block", marginBottom: 4 }}>Produto</label>
@@ -225,7 +225,7 @@ export default function ProductRawMaterials() {
               </div>
 
             <button onClick={associate} disabled={loading} style={{ padding: 10, background: "#007bff", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
-              {loading ? <><Spinner size={16} /> Adicionando</> : "Adicionar Material"}
+              {loading ? <><Spinner size={16} /> Adicionando</> : "Adicionar Associação"}
             </button>
           </div>
         </aside>

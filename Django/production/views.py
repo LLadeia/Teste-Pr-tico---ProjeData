@@ -94,8 +94,12 @@ class ProductViewSet(ModelViewSet):
             except Exception:
                 pass
 
-            # Registra produção com preços
-            unit_price = product.price or 0
+            # Registra produção com preços (inclui material + manufacturing, sem produto)
+            unit_price = 0
+            for relation in relations:
+                raw_material_cost = relation.quantity * float(relation.raw_material.price or 0)
+                manufacturing_cost = float(relation.manufacturing_price or 0)
+                unit_price += raw_material_cost + manufacturing_cost
             total_price = unit_price * quantity
             ProductionLog.objects.create(product=product, quantity=quantity, unit_price=unit_price, total_price=total_price)
 
@@ -115,74 +119,6 @@ class ProductionLogViewSet(ModelViewSet):
     ordering = ['-created_at']
     permission_classes = [IsAuthenticated]
 
-
-class IsAdminUser(IsAuthenticated):
-    """Permissão customizada para apenas superusuários"""
-    def has_permission(self, request, view):
-        return super().has_permission(request, view) and request.user.is_superuser
-
-
-class AuditoryViewSet(ViewSet):
-    """ViewSet para visualizar histórico de alterações - somente para superusuários"""
-    permission_classes = [IsAdminUser]
-
-    def list(self, request):
-        """Retorna histórico de todas as alterações"""
-        changes = []
-
-        # Histórico de Produtos
-        for history in Product.history.all().order_by('-history_date'):
-            changes.append({
-                "id": history.id,
-                "model": "Product",
-                "object_id": history.id,
-                "object_str": f"Produto: {history.name}",
-                "changed_by": history.history_user.username if history.history_user else "Sistema",
-                "changed_at": history.history_date,
-                "change_reason": history.get_history_type_display(),
-                "changes": {
-                    "name": history.name,
-                    "price": str(history.price) if history.price else None
-                }
-            })
-
-        # Histórico de Matérias-Primas
-        for history in RawMaterial.history.all().order_by('-history_date'):
-            changes.append({
-                "id": history.id,
-                "model": "RawMaterial",
-                "object_id": history.id,
-                "object_str": f"Matéria-Prima: {history.name}",
-                "changed_by": history.history_user.username if history.history_user else "Sistema",
-                "changed_at": history.history_date,
-                "change_reason": history.get_history_type_display(),
-                "changes": {
-                    "name": history.name,
-                    "stock": history.stock
-                }
-            })
-
-        # Histórico de Relações Produto-Matéria Prima
-        for history in ProductRawMaterial.history.all().order_by('-history_date'):
-            product_name = history.product.name if history.product else "Deletado"
-            raw_mat_name = history.raw_material.name if history.raw_material else "Deletada"
-            changes.append({
-                "id": history.id,
-                "model": "ProductRawMaterial",
-                "object_id": history.id,
-                "object_str": f"{product_name} - {raw_mat_name}",
-                "changed_by": history.history_user.username if history.history_user else "Sistema",
-                "changed_at": history.history_date,
-                "change_reason": history.get_history_type_display(),
-                "changes": {
-                    "quantity": history.quantity
-                }
-            })
-
-        # Ordenar por data decrescente
-        changes.sort(key=lambda x: x['changed_at'], reverse=True)
-
-        return Response(changes)
 
     @action(detail=False, methods=['get'])
     def by_model(self, request):

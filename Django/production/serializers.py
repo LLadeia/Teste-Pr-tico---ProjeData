@@ -40,7 +40,6 @@ class ProductRawMaterialSerializer(serializers.ModelSerializer):
 
 
 class HistorySerializer(serializers.Serializer):
-    """Serializer para histórico de alterações"""
     id = serializers.IntegerField()
     model = serializers.CharField()
     object_id = serializers.IntegerField()

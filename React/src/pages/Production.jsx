@@ -111,19 +111,15 @@ export default function Production() {
                     </tr>
                   </thead>
                   <tbody>
-                    {productions.map(p => {
-                      const unitPrice = parseFloat(p.unit_price || 0);
-                      const totalPrice = parseFloat(p.total_price || 0);
-                      return (
+                    {productions.map(p => (
                         <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
                           <td style={{ padding: 8 }}>{p.product_name}</td>
-                          <td style={{ textAlign: "right", padding: 8 }}>R$ {unitPrice.toFixed(2)}</td>
+                          <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(p.unit_price || 0).toFixed(2)}</td>
                           <td style={{ textAlign: "center", padding: 8 }}>x{p.quantity}</td>
-                          <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {totalPrice.toFixed(2)}</td>
+                          <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {parseFloat(p.total_price || 0).toFixed(2)}</td>
                           <td style={{ padding: 8, fontSize: 12, color: "#666" }}>{formatDate(p.created_at)}</td>
                         </tr>
-                      );
-                    })}
+                    ))}
                   </tbody>
                 </table>
               )}
@@ -146,27 +142,39 @@ export default function Production() {
               >
                 <option value="">Selecione um produto</option>
                 {products.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} - R$ {parseFloat(p.price || 0).toFixed(2)}</option>
+                  <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
 
-            {selectedProduct && products.find(p => p.id == selectedProduct) && (
+            {selectedProduct && associations.filter(a => String(a.product) === String(selectedProduct)).length > 0 && (
               <div style={{ padding: 12, background: "#e3f2fd", borderRadius: 6 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <small style={{ color: "#666" }}>Preço Unitário</small>
-                    <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#007bff" }}>
-                      R$ {parseFloat(products.find(p => p.id == selectedProduct)?.price || 0).toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <small style={{ color: "#666" }}>Preço Total ({quantity}x)</small>
-                    <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#28a745" }}>
-                      R$ {(parseFloat(products.find(p => p.id == selectedProduct)?.price || 0) * (quantity || 1)).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
+                {(() => {
+                  const productAssocs = associations.filter(a => String(a.product) === String(selectedProduct));
+                  let unitCost = 0;
+                  productAssocs.forEach(assoc => {
+                    const matPrice = parseFloat(assoc.raw_material_price || 0);
+                    const manuf = parseFloat(assoc.manufacturing_price || 0);
+                    unitCost += (matPrice * parseFloat(assoc.quantity)) + manuf;
+                  });
+                  const totalCost = unitCost * (quantity || 1);
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <div>
+                        <small style={{ color: "#666" }}>Preço Unitário</small>
+                        <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#007bff" }}>
+                          R$ {unitCost.toFixed(2)}
+                        </p>
+                      </div>
+                      <div>
+                        <small style={{ color: "#666" }}>Preço Total ({quantity}x)</small>
+                        <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#28a745" }}>
+                          R$ {totalCost.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
