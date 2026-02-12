@@ -7,7 +7,7 @@
 - **Senha**: `admin123`
 
 ### Como fazer Login:
-1. Acesse `http://localhost:5173/superuser` ou `http://localhost:5173/login`
+1. Acesse `http.//localhost:5173/superuser` ou `http://localhost:5173/login`
 2. Insira as credenciais do superusuário
 3. Clique em **"🔐 Acessar Painel"**
 4. Será redirecionado para o painel de **Auditoria**

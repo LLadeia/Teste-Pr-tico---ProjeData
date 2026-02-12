@@ -87,8 +87,17 @@ class ProductViewSet(ModelViewSet):
                 raw_material = relation.raw_material
                 raw_material.stock -= relation.quantity * quantity
                 raw_material.save()
-            # Registra produção
-            ProductionLog.objects.create(product=product, quantity=quantity)
+            # Atualiza estoque do produto produzido
+            try:
+                product.stock = (product.stock or 0) + quantity
+                product.save()
+            except Exception:
+                pass
+
+            # Registra produção com preços
+            unit_price = product.price or 0
+            total_price = unit_price * quantity
+            ProductionLog.objects.create(product=product, quantity=quantity, unit_price=unit_price, total_price=total_price)
 
         return Response({"success": True})
 

@@ -106,17 +106,20 @@ export default function Production() {
                       <th style={{ textAlign: "left", padding: 8 }}>Produto</th>
                       <th style={{ textAlign: "right", padding: 8 }}>Preço Unit.</th>
                       <th style={{ textAlign: "center", padding: 8 }}>Quantidade</th>
+                      <th style={{ textAlign: "right", padding: 8 }}>Preço Total</th>
                       <th style={{ textAlign: "left", padding: 8 }}>Data/Hora</th>
                     </tr>
                   </thead>
                   <tbody>
                     {productions.map(p => {
-                      const product = products.find(pr => pr.id === p.product);
+                      const unitPrice = parseFloat(p.unit_price || 0);
+                      const totalPrice = parseFloat(p.total_price || 0);
                       return (
                         <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
                           <td style={{ padding: 8 }}>{p.product_name}</td>
-                          <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(product?.price || 0).toFixed(2)}</td>
+                          <td style={{ textAlign: "right", padding: 8 }}>R$ {unitPrice.toFixed(2)}</td>
                           <td style={{ textAlign: "center", padding: 8 }}>x{p.quantity}</td>
+                          <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {totalPrice.toFixed(2)}</td>
                           <td style={{ padding: 8, fontSize: 12, color: "#666" }}>{formatDate(p.created_at)}</td>
                         </tr>
                       );

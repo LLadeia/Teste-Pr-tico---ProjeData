@@ -10,6 +10,7 @@ export default function Products() {
   const [toasts, setToasts] = useState([]);
   const [editing, setEditing] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -24,6 +25,12 @@ export default function Products() {
     setLoading(false);
   };
 
+  
+  async function handleSubmit(e) {
+    e.preventDefault();
+    await create();
+  }
+
   const pushToast = (type, message) => {
     const id = Date.now() + Math.random();
     setToasts(t => [...t, { id, type, message }]);
@@ -35,9 +42,13 @@ export default function Products() {
     if (!form.price || form.price <= 0) return pushToast("error", "Preencha o preço");
     setLoading(true);
     try {
-      await api.post("products/", { name: form.name, price: Number(form.price) });
+      const data = new FormData();
+      Object.entries(form).forEach(([k, v]) => data.append(k, v));
+      if (imageFile) data.append("image", imageFile);
+
+      await api.post("products/", data);
       pushToast("success", "Produto criado");
-      setForm({ name: "", price: "" });
+      setForm({ name: "", price: "" , image: null});
       await load();
     } catch (err) {
       pushToast("error", "Erro ao criar");
@@ -63,12 +74,17 @@ export default function Products() {
     setModalVisible(true);
   };
 
-  const saveEdit = async (name, price) => {
+  const saveEdit = async (name, price, imageFile) => {
     if (!name.trim()) return pushToast("error", "Preencha o nome");
     if (!price || price <= 0) return pushToast("error", "Preencha o preço");
     setLoading(true);
     try {
-      await api.patch(`products/${editing.id}/`, { name, price: Number(price) });
+      const data = new FormData();
+      data.append("name", name);
+      data.append("price", price);
+      if (imageFile) data.append("image", imageFile);
+
+      await api.patch(`products/${editing.id}/`, data);
       pushToast("success", "Produto atualizado");
       setModalVisible(false);
       setEditing(null);
@@ -98,16 +114,20 @@ export default function Products() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
+                  <th style={{ textAlign: "left", padding: 8 }}>Imagem</th>
                   <th style={{ textAlign: "left", padding: 8 }}>Nome</th>
                   <th style={{ textAlign: "right", padding: 8 }}>Preço</th>
+                  <th style={{ textAlign: "center", padding: 8 }}>Estoque</th>
                   <th style={{ width: 140 }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
                   <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
+                    <td style={{ padding: 8 }}>{p.image ? <img src={p.image} alt={p.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
                     <td style={{ padding: 8 }}>{p.name}</td>
                     <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: "center", padding: 8 }}>{p.stock}</td>
                     <td style={{ padding: 8 }}>
                       <button onClick={() => openEdit(p)} style={{ marginRight: 8 }}>Editar</button>
                       <button onClick={() => remove(p.id)} style={{ color: "#a00" }}>Deletar</button>
@@ -124,6 +144,7 @@ export default function Products() {
           <div style={{ display: "grid", gap: 8 }}>
             <input type="text" placeholder="Nome" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+            <input type="file" onChange={e => setImageFile(e.target.files[0])} />
             <button onClick={create} disabled={loading}>
               {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
             </button>
@@ -141,13 +162,15 @@ export default function Products() {
 function EditModal({ product, onSave, onCancel }) {
   const [name, setName] = useState(product.name);
   const [price, setPrice] = useState(product.price || "");
+  const [imageFile, setImageFile] = useState(null);
   return (
     <div style={{ display: "grid", gap: 8 }}>
       <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome" />
       <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço" step="0.01" min="0" />
+      <input type="file" onChange={e => setImageFile(e.target.files[0])} />
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
         <button onClick={onCancel}>Cancelar</button>
-        <button onClick={() => onSave(name, price)}>Salvar</button>
+        <button onClick={() => onSave(name, price, imageFile)}>Salvar</button>
       </div>
     </div>
   );

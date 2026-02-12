@@ -6,7 +6,6 @@ import RawMaterials from "./pages/RawMaterials";
 import ProductRawMaterials from "./pages/ProductRawMaterials";
 import Production from "./pages/Production";
 import Login from "./pages/Login";
-import SuperUserLogin from "./pages/SuperUserLogin";
 import Auditory from "./pages/Auditory";
 
 function App() {
@@ -14,8 +13,7 @@ function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-          <Route path="/login" element={<SuperUserLogin />} />
-          <Route path="/superuser" element={<SuperUserLogin />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/auditory" element={<Auditory />} />
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/" element={<Login />} />
